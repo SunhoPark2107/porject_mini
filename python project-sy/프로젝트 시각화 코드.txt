@@ -1,0 +1,179 @@
+python 시각화 코드
+
+# 패키지
+import pymysql as m
+import pandas as pd
+plt.rc("font",family = "Malgun Gothic")
+plt.rc("axes", unicode_minus = False)
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+# 1) 데이터 기간내 국가별 방문자수(19.1~20.4)
+
+con = m.connect(host='localhost', user='root', password='1234', db ='project_py', charset='utf8')
+cur = con.cursor()
+q = """SELECT 국가, SUM(방문자_수) '국가별 방문자 수'
+FROM project_csv2
+GROUP BY 1
+ORDER BY 2 DESC"""
+cur.execute(q)                        
+res = cur.fetchall()     
+col = ['국가', '방문자_수']
+df_VbyNation = pd.DataFrame(res, columns = col)
+con.close()
+
+df_VbyNation
+
+# 1) 항목 bar plot 그래프
+
+top5_num = df_VbyNation.head(5)
+index = top5_num['국가']
+data = top5_num['방문자_수']
+plt.bar(index, data)
+plt.show()
+
+# 2)방문자 수 상위 5개 국가가 차지하는 방문자 수 비율
+# top5_nation_visitor_ratio
+
+con = m.connect(host='localhost', user='root', password='1234', db ='project_py', charset='utf8')
+cur = con.cursor()
+q = """SELECT 국가, SUM(방문자_수) / (SELECT SUM(방문자_수) FROM project_csv2)*100 '나라별 비율'
+FROM project_csv2
+WHERE 국가 IN ('china','Japan','Taiwan','USA','Hong Kong')
+GROUP BY 1
+ORDER BY 2 DESC
+"""
+cur.execute(q)                        
+res = cur.fetchall()                  
+df_visitorT5 = pd.DataFrame(res)
+con.close()
+df_visitorT5
+
+col = ['국가', '방문자 수 비율']
+df_visitorT5 = pd.DataFrame(res, columns =col)
+df_visitorT5
+
+# 2)번 항목 bar plot 시각화
+top5_ratio = df_visitorT5.head(5)
+index = top5_ratio['국가']
+data_ratio = top5_ratio['방문자 수 비율']
+plt.bar(index, data_ratio)
+plt.show()
+
+# 2)번 항목 pie plot 시각화
+data = top5_ratio['방문자 수 비율']
+labels = top5_ratio['국가']
+colors = ['#FBFFB9', '#FDD692', '#EC7357', '#754F44', '#B2EBF4']
+wedgeprops={'width': 0.7, 'edgecolor': 'black', 'linewidth': 3}
+plt.pie(data, labels = labels, autopct = '%.i%%', startangle=260, counterclock=False, colors=colors, wedgeprops=wedgeprops)
+plt.show()
+
+
+# 관광 비중이 높아 방문 목적별 TOP5 국가를 선정함
+# 4) 관광 목적 TOP 5 / 1. 중국 2. 일본 3. 대만 4. 미국 5. 홍콩
+
+con = m.connect(host='localhost', user='root', password='1234', db ='project_py', charset='utf8')
+cur = con.cursor()
+q = """SELECT 국가, SUM(관광)/(SELECT SUM(관광) FROM project_csv2)*100 관광비율
+FROM project_csv2
+WHERE 국가 IN ('China', 'Japan', 'Taiwan', 'USA', 'Hong Kong')
+GROUP BY 1
+ORDER BY 2 DESC
+"""
+cur.execute(q)                        
+res = cur.fetchall()                  
+df_purT5 = pd.DataFrame(res)
+con.close()
+
+col = ['국가', '관광 비율']
+df_purT5 = pd.DataFrame(res, columns =col)
+df_purT5
+
+# 4) 번 항목 'others' 생성 코드
+
+sum_of_etc = 100.0-float(df_purT5["관광 비율"].sum())              
+sum_of_etc
+data ={"국가": "Others", "관광 비율":sum_of_etc}
+df_purT5 = df_purT5.append(data,  ignore_index=True)
+df_purT5
+
+
+4) 번 항목 pie plot 시각화
+
+data = df_purT5['관광 비율']
+labels = df_purT5['국가']
+colors = ['#FBFFB9', '#754F44', '#FDD692', '#EC7357', '#B2EBF4','#ff7473']
+wedgeprops={'width': 0.7, 'edgecolor': 'black', 'linewidth': 3}
+plt.pie(data, labels = labels, autopct = '%.i%%', startangle=260, counterclock=False, colors=colors, wedgeprops=wedgeprops)
+plt.title('2019-2020 관광목적 방문객 top 5국가')
+plt.show()
+
+# 공무 목적 TOP 5 / 1. 미국 2. 중국 3. 몽골 4. 베트남 5. 태국 
+# 6) 공무 목적 방문객 top 5 국가
+
+con = m.connect(host='localhost', user='root', password='1234', db ='project_py', charset='utf8')
+cur = con.cursor()
+q = """SELECT 국가, SUM(공무)/(SELECT SUM(공무) FROM project_csv2)*100 공무비율
+FROM project_csv2
+WHERE 국가 IN ('USA', 'China', 'Vietnam', 'Mongolia', 'Thailand')
+GROUP BY 1
+ORDER BY 2 DESC
+"""
+cur.execute(q)                        
+res = cur.fetchall()                  
+df_officeT5 = pd.DataFrame(res)
+con.close()
+
+col = ['국가', '공무 비율']
+df_officeT5 = pd.DataFrame(res, columns =col)
+df_officeT5
+
+6) 번 항목 others 컬럼 추가
+
+sum_of_etc = 100.0-float(df_officeT5["공무 비율"].sum())              
+sum_of_etc
+
+data ={"국가": "Others", "공무 비율":sum_of_etc}
+
+df_officeT5 = df_officeT5.append(data,  ignore_index=True)
+df_officeT5
+
+# 5번 항목 pie plot 시각화
+
+data = df_officeT5['공무 비율']
+labels = df_officeT5['국가']
+colors = ['#FBFFB9', '#754F44', '#FDD692', '#EC7357', '#B2EBF4','#ff7473']
+wedgeprops={'width': 0.7, 'edgecolor': 'black', 'linewidth': 3}
+plt.pie(data, labels = labels, autopct = '%.i%%', startangle=260, counterclock=False, colors=colors, wedgeprops=wedgeprops)
+plt.title('2019-2020 공무목적 방문객 top 5국가')
+plt.show()
+
+
+# 2017-2019 3년간 방문국가별 1인당 평균 지출 비용.
+
+con = m.connect(host='localhost', user='root', password='1234', db ='project_py', charset='utf8')
+cur = con.cursor()
+q = """SELECT class_2, TRUNCATE(avg(avg_ex),0)*1000
+FROM expenditure
+WHERE class_1 = '거주국'
+GROUP BY class_2
+ORDER BY 2 desc;"""
+cur.execute(q)                        
+res = cur.fetchall()     
+col = ['국가', '1인 평균 지출비용']
+df_avg_expenditure = pd.DataFrame(res, columns = col)
+con.close()
+
+df_avg_expenditure
+
+avg_expenditure = df_avg_expenditure
+index = df_avg_expenditure['국가']
+data = df_avg_expenditure['1인 평균 지출비용']
+colors = ['#FBFFB9', '#FDD692', '#EC7357', '#754F44', '#B2EBF4']
+plt.figure(figsize=(12,6))
+plt.xticks(rotation=45)
+plt.bar(index, data)
+plt.title('2017-2019 국가별 1인 평균 지출비용(단위:백만원)')
+plt.show()
+
