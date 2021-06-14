@@ -177,3 +177,37 @@ plt.bar(index, data)
 plt.title('2017-2019 국가별 1인 평균 지출비용(단위:백만원)')
 plt.show()
 
+# 코로나 발생 전/후 전년 동월 한국 방문객 수 비교(1월~4월)
+
+con = m.connect(host='localhost', user='root', password='1234', db ='project_py', charset='utf8')
+cur = con.cursor()
+q = """SELECT 년_월, SUM(방문자_수)/10000 총_방문자_수
+FROM project_csv2
+WHERE 년_월 IN ('19-01', '19-02', '19-03', '19-04', '20-01', '20-02', '20-03', '20-04')
+GROUP BY 1;
+"""
+cur.execute(q)                        
+res = cur.fetchall()                  
+df_VisitbyYear = pd.DataFrame(res)
+con.close()
+df_VisitbyYear
+
+col = ['년_월', '총_방문자_수']
+df_VisitbyYear = pd.DataFrame(res, columns =col)
+df_VisitbyYear
+
+# # 코로나 발생 전/후 전년 동월 한국 방문객 수 비교(1월~4월) 시각화
+
+visit_2019 = df_VisitbyYear['총_방문자_수'].head(4)
+visit_2020 = df_VisitbyYear["총_방문자_수"].tail(4)
+index = ['1월', '2월', '3월', '4월']
+print(visit_2019,visit_2020)
+plt.figure(figsize=(12,6))
+plt.gca().xaxis.set_major_formatter(mticker.FormatStrFormatter('%i 만명'))
+plt.barh(index, visit_2019, color = 'r', alpha = 0.6, label='2019 월별 방문객')
+plt.barh(index, -(visit_2020), color = 'b', alpha = 0.6, label='2020 월별 방문객')
+plt.title('2019_2020 전년 동월 대비 한국 방문객 수 비교', fontsize = 20, fontweight = 'bold')
+plt.xlabel('2019 월별 방문객')
+plt.ylabel('2020 월별 방문객')
+plt.legend(loc=2, ncol=1)
+plt.show()

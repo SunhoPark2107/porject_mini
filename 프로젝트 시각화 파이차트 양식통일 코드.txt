@@ -1,0 +1,9 @@
+data = 
+labels = 
+colors = ['#ff9999', '#ffc000', '#8fd9b6', '#d395d0', '#00BFFF', '#7B68EE']
+plt.figure(figsize=(12,6))
+plt.rcParams['font.size'] = 15
+explode = [0.05, 0.05, 0.09, 0.09, 0.09, 0.05]
+plt.pie(data, labels = labels, autopct = '%.i%%', startangle=95, counterclock=False, colors=colors, explode = explode)
+plt.title('',  fontsize = 20 , fontweight = 'bold')
+plt.show()
