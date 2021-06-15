@@ -1,0 +1,65 @@
+# 2011-2021 외래방문객 방문 연령대 비율 추이(단위:백분율)
+
+# project_age 테이블 생성
+CREATE TABLE project_age(
+date VARCHAR(20),
+rate_under20 DECIMAL(20, 2),
+rate_20 DECIMAL(20, 2),
+rate_30 DECIMAL(20, 2),
+rate_40 DECIMAL(20, 2),
+rate_50 DECIMAL(20, 2),
+rate_over60 DECIMAL(20, 2)
+);
+
+# 테이블에 데이터 로드
+load data infile 'c:/mysql/visit_rate.csv'
+into table project_age
+fields terminated by ','
+enclosed by '"'
+lines terminated by '\n'
+ignore 1 rows;
+
+
+# 주피터 노트북으로 데이터 테이블 호출
+
+con = m.connect(host='localhost', user='root', password='1234', db ='project_py', charset='utf8')
+cur = con.cursor()
+q = """SELECT * FROM project_age WHERE date LIKE "%08";"""
+cur.execute(q)                        
+res = cur.fetchall()                  
+df_VisitbyAge = pd.DataFrame(res)
+con.close()
+df_VisitbyAge
+
+col = ['date', 'under20', 'ageband_20',  'ageband_30',  'ageband_40',  'ageband_50',  'over60']
+df_VisitbyAge = pd.DataFrame(res, columns =col)
+df_VisitbyAge
+
+# 시각화
+
+plt.figure(figsize=(12, 6))
+
+# 그래프 틀 그리기
+fig = plt.figure(figsize=(12,6))
+fig.set_facecolor('white')
+ax = fig.add_subplot()
+
+# 데이터 만들기
+df_under20 = df_VisitbyAge['under20']
+df_ageband_20 = df_VisitbyAge['ageband_20']
+df_ageband_30 = df_VisitbyAge['ageband_30']
+df_ageband_40 = df_VisitbyAge['ageband_40']
+df_ageband_50 = df_VisitbyAge['ageband_50']
+df_over60 = df_VisitbyAge['over60']
+days = df_VisitbyAge['date']
+
+ax.plot(days,df_under20,marker='o',label='20세 미만')
+ax.plot(days,df_ageband_20,marker='o',label='20대')
+ax.plot(days,df_ageband_30,marker='o',label='30대')
+ax.plot(days,df_ageband_40,marker='o',label='40대')
+ax.plot(days,df_ageband_50,marker='o',label='50대')
+ax.plot(days,df_over60,marker='o',label='60세 이상')
+
+
+ax.legend()
+plt.title("2011-2021 외래방문객 방문 연령대 비율 추이(단위:백분율)", fontsize=20, fontweight = "bold")
